@@ -1,0 +1,4 @@
+pandas~=2.2.3
+sqlalchemy~=2.0.38
+psycopg2
+tqdm~=4.67.1
