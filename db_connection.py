@@ -11,10 +11,7 @@ class DBConnection:
         self.engine = None
 
     def create_database_if_not_exists(self):
-        """
-        Connects to the default 'postgres' database to check if the target database exists.
-        If it does not exist, it creates the database.
-        """
+        # Connect to the default 'postgres' database to check/create our target DB.
         default_conn_str = f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{self.port}/postgres"
         engine_default = create_engine(default_conn_str)
         with engine_default.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
@@ -27,9 +24,6 @@ class DBConnection:
                 print(f"[DBConnection] Database '{self.dbname}' already exists.")
 
     def connect(self):
-        """
-        Creates and returns a SQLAlchemy engine connected to the target database.
-        """
         self.engine = create_engine(
             f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{self.port}/{self.dbname}"
         )

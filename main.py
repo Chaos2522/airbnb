@@ -8,16 +8,16 @@ def main():
     # Database connection settings
     user = "postgres"
     password = "airbnb123d"
-    host = "localhost"
+    host = "localhost"  # or "db" if running in the same Docker network as the Python container
     port = "5432"
     dbname = "airbnb_dwh"
 
-    # Initialize database connection and create target database if it does not exist.
+    # Initialize DB connection and create database if it doesn't exist
     db = DBConnection(user, password, host, port, dbname)
-    db.create_database_if_not_exists()
+    db.create_database_if_not_exists()  # Create the database if needed
     engine = db.connect()
 
-    # Define file paths.
+    # Define file paths
     paths = {
         'calendar': 'resources/calendar.csv',
         'listings': 'resources/listings.csv',
@@ -26,22 +26,26 @@ def main():
         'geojson': 'resources/neighbourhoods.geojson'
     }
 
-    # Extraction: Read all source files.
+    # Extraction step
     extractor = DataExtractor(paths)
-    calendar_df, listings_df, listings_details_df, neighbourhoods_df, geojson_gdf = extractor.extract()
+    calendar_df, listings_df, listings_details_df, neighbourhoods_df = extractor.extract()
 
-    # Transformation: Create dimensions and fact table.
+    # Transformation step
     transformer = DataTransformer()
     dim_listing, dim_location, dim_date, fact_daily_revenue = transformer.transform(
-        calendar_df, listings_df, listings_details_df, neighbourhoods_df, geojson_gdf
+        calendar_df, listings_df, listings_details_df, neighbourhoods_df
     )
 
-    # Loading: Write the transformed tables into the PostgreSQL database.
+    # Loading step
     loader = DataLoader(engine)
     loader.load_dimension(dim_listing, "dim_listing", chunk_size=50000)
-    loader.load_dimension(dim_location, "dim_location", chunk_size=50000)
+    loader.load_dimension(dim_location.drop(columns=["listing_id"]), "dim_location", chunk_size=50000)
     loader.load_dimension(dim_date, "dim_date", chunk_size=50000)
-    # Option: Use COPY command for the large fact table.
+
+    # Option 1: Use chunked load (to_sql)
+    # loader.load_fact(fact_daily_revenue, "fact_daily_revenue", chunk_size=50000)
+
+    # Option 2: Use the COPY command for fact data
     loader.load_fact_using_copy(fact_daily_revenue, "fact_daily_revenue")
 
     print("[ETL] Process completed successfully!")
