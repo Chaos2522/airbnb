@@ -1,14 +1,16 @@
 ### Add resources folder to root and input:
 
+```
 'calendar': 'resources/calendar.csv',
         'listings': 'resources/listings.csv',
         'listings_details': 'resources/listings_details.csv',
         'neighbourhoods': 'resources/neighbourhoods.csv',
         'geojson': 'resources/neighbourhoods.geojson'
-
+```
 
 ### Use updated neighbourhoods.csv:
 
+```
 neighbourhood_group,neighbourhood
 Zuidoost,Bijlmer-Centrum
 Zuidoost,Bijlmer-Oost
@@ -32,3 +34,4 @@ Nieuw-West,Slotervaart
 Oost,Watergraafsmeer
 West,Westerpark
 Zuid,Zuid
+```
