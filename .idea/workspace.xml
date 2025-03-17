@@ -4,32 +4,27 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a5208977-e527-45e8-bfc3-1a1bda2fdb82" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/airbnb.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data_extractor.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data_loader.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/data_transformer.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/db_connection.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+    <list default="true" id="a5208977-e527-45e8-bfc3-1a1bda2fdb82" name="Changes" comment="First commit">
       <change afterPath="$PROJECT_DIR$/resources/calendar.csv" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/resources/listings.csv" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/resources/listings_details.csv" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/resources/neighbourhoods.csv" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/resources/neighbourhoods.geojson" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data_extractor.py" beforeDir="false" afterPath="$PROJECT_DIR$/data_extractor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data_loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/data_loader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data_transformer.py" beforeDir="false" afterPath="$PROJECT_DIR$/data_transformer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db_connection.py" beforeDir="false" afterPath="$PROJECT_DIR$/db_connection.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="ChangesViewManager" show_ignored="true" />
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
@@ -40,31 +35,36 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 8
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8
+}</component>
   <component name="ProjectId" id="2u2RknZpZM7TlEGaMPRuQhYTTCq" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.activate_this.executor": "Run",
-    "Python.main (1).executor": "Run",
-    "Python.main.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.activate_this.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main (1).executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/JanFe/PycharmProjects/airbnb&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\JanFe\PycharmProjects\airbnb" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\JanFe\PycharmProjects\airbnb\resources" />
       <recent name="C:\Users\JanFe\PycharmProjects\airbnb" />
@@ -164,16 +164,40 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1741444827758</updated>
-      <workItem from="1741444830019" duration="12608000" />
+      <workItem from="1741444830019" duration="15175000" />
+      <workItem from="1741542556192" duration="1681000" />
+      <workItem from="1741626379897" duration="6607000" />
+      <workItem from="1742227999404" duration="11599000" />
     </task>
+    <task id="LOCAL-00001" summary="First commit">
+      <option name="closed" value="true" />
+      <created>1741460799744</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1741460799744</updated>
+    </task>
+    <task id="LOCAL-00002" summary="First commit">
+      <option name="closed" value="true" />
+      <created>1741460819277</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1741460819277</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="First commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="First commit" />
+  </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/airbnb$main.coverage" NAME="main Coverage Results" MODIFIED="1741448438562" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/airbnb_etl" />
     <SUITE FILE_PATH="coverage/airbnb$activate_this.coverage" NAME="activate_this Coverage Results" MODIFIED="1741444864653" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/.venv/Scripts" />
-    <SUITE FILE_PATH="coverage/airbnb$main__1_.coverage" NAME="main (1) Coverage Results" MODIFIED="1741460286180" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/airbnb$main__1_.coverage" NAME="main (1) Coverage Results" MODIFIED="1742239768202" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
