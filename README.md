@@ -1,7 +1,7 @@
 ### Add resources folder to root and input:
 
 ```
-'calendar': 'resources/calendar.csv',
+        'calendar': 'resources/calendar.csv',
         'listings': 'resources/listings.csv',
         'listings_details': 'resources/listings_details.csv',
         'neighbourhoods': 'resources/neighbourhoods.csv',
