@@ -11,49 +11,37 @@ class DataTransformer:
                   listings_details_df: pd.DataFrame, neighbourhoods_df: pd.DataFrame,
                   geojson_gdf: gpd.GeoDataFrame):
         """
-        Transforms raw source data into a star schema with dimensions and a fact table.
-
-        Data Sources:
-          - calendar_df: Contains daily calendar data (listing_id, date, availability, price).
-          - listings_df: Contains main listing information (id, name, host, price, etc.).
-          - listings_details_df: Contains additional listing details such as description.
-          - neighbourhoods_df: A CSV mapping neighborhoods to a higher-level borough (neighbourhood_group).
-          - geojson_gdf: A GeoDataFrame from neighbourhoods.geojson (not used in this transformation).
+        Transforms raw source data into a star schema with dimensions and a fact table,
+        with the following modifications for location: (Feedback)
+          - DIM_LISTING uses a surrogate key (listing_id_surrogate) for listings.
+          - DIM_LOCATION is built using the natural key (latitude, longitude) and contains attributes such as
+            neighborhood, city, and borough.
+          - A mapping from the original listing_id to (latitude, longitude) is created.
+          - FACT_DAILY_REVENUE is built using the surrogate listing key and enriched with latitude and longitude.
 
         Transformation Steps:
-          1. Clean Calendar Data:
-             - Convert 'date' to datetime, clean 'price', and compute an occupancy flag.
-          2. Clean and Merge Listings Data:
-             - Rename the 'id' column to 'listing_id' and merge listings with listing details.
-          3. Build DIM_LISTING:
-             - Select core listing attributes.
-             - Create a surrogate key for listings (listing_id_surrogate) and preserve the original id as ListingID_BK.
-          4. Build DIM_LOCATION:
-             - Extract unique location attributes.
-             - Normalize neighborhood names and merge with the CSV mapping to assign a borough.
-             - Create a surrogate key for locations (location_id) and build a mapping from the original listing_id to location_id.
-          5. Build DIM_DATE:
-             - Derive date components (day, month, quarter, etc.) from the calendar.
-             - Create a surrogate key (date_id) for the unique dates.
+          1. Clean calendar data.
+          2. Clean and merge listings data.
+          3. Build DIM_LISTING.
+          4. Build DIM_LOCATION and a mapping from original listing_id to location (lat/long).
+          5. Build DIM_DATE.
           6. Build FACT_DAILY_REVENUE:
-             - Start from calendar data, merge in default price from listings, and convert the original listing_id to the surrogate key.
-             - Merge in location_id from the listing-to-location mapping.
+             - Convert the original listing_id to the surrogate key from DIM_LISTING.
+             - Merge in latitude and longitude from the mapping.
              - Merge in date_id from DIM_DATE.
-             - Drop raw date columns so that the fact table references only surrogate keys and measures.
         """
         # ----- Step 1: Clean Calendar Data -----
-        # Convert the 'date' column to datetime format.
         calendar_df['date'] = pd.to_datetime(calendar_df['date'])
-        # Create an occupancy flag: 0 if available ('t'), else 1.
+        # Occupancy flag: 0 if available ('t'), else 1.
         calendar_df['occupied_flag'] = calendar_df['available'].apply(lambda x: 0 if x == 't' else 1)
-        # Clean the 'price' field by removing '$' and commas, then convert to float.
+        # Clean price: remove '$' and convert to float.
         calendar_df['price'] = calendar_df['price'].replace(r"[\$,]", '', regex=True).astype(float)
 
         # ----- Step 2: Clean and Merge Listings Data -----
-        # Standardize the listing ID by renaming the 'id' column to 'listing_id'.
+        # Rename 'id' to 'listing_id' for consistency.
         listings_df.rename(columns={'id': 'listing_id'}, inplace=True)
         listings_details_df.rename(columns={'id': 'listing_id'}, inplace=True)
-        # Merge listings with additional details to enrich the listing attributes.
+        # Merge listings with listings_details to enrich listing attributes.
         merged_listings = pd.merge(
             listings_df,
             listings_details_df,
@@ -63,73 +51,61 @@ class DataTransformer:
         )
 
         # ----- Step 3: Build DIM_LISTING -----
-        # Select key listing attributes to build the listing dimension.
+        # Select listing-specific attributes, including the listing name.
         dim_listing = merged_listings[
-            ['listing_id', 'name', 'property_type', 'room_type', 'host_name', 'description']
-        ].drop_duplicates().copy()
-        # Rename columns for clarity.
+            ['listing_id', 'name', 'property_type', 'room_type', 'host_name', 'description']].drop_duplicates().copy()
+        # Rename columns: 'name' to 'listing_name', 'host_name' to 'host'.
         dim_listing.rename(columns={'name': 'listing_name', 'host_name': 'host'}, inplace=True)
-        # Remove duplicates based on the original listing id.
+        # Remove duplicates based on the original listing_id.
         dim_listing = dim_listing.drop_duplicates(subset=['listing_id']).reset_index(drop=True)
-        # Create a surrogate key for listings.
+        # Create a surrogate key for DIM_LISTING.
         dim_listing['listing_id_surrogate'] = dim_listing.index + 1
-        # Preserve the original listing id as a backup.
+        # Preserve the original listing id in a backup column.
         dim_listing.rename(columns={'listing_id': 'ListingID_BK'}, inplace=True)
-        # Reorder columns: surrogate key first, then the backup id and attributes.
+        # Reorder columns so that the surrogate key is first.
         dim_listing = dim_listing[
             ['listing_id_surrogate', 'ListingID_BK', 'listing_name', 'property_type', 'room_type', 'host',
-             'description']
-        ]
+             'description']]
 
-        # ----- Step 4: Build DIM_LOCATION with its own surrogate key -----
-        # Extract location-specific columns from the merged listings.
+        # ----- Step 4: Build DIM_LOCATION and Mapping -----
+        # Extract location-related columns.
         temp_location = merged_listings[
-            ['listing_id', 'neighbourhood_cleansed', 'city', 'latitude', 'longitude']
-        ].copy()
-        # Rename 'neighbourhood_cleansed' to 'neighborhood' for consistency.
+            ['listing_id', 'neighbourhood_cleansed', 'city', 'latitude', 'longitude']].copy()
         temp_location.rename(columns={'neighbourhood_cleansed': 'neighborhood'}, inplace=True)
-        # Normalize neighborhood names by stripping whitespace and converting to lowercase.
+        # Normalize neighborhood text.
         temp_location['neighborhood'] = temp_location['neighborhood'].str.strip().str.lower()
-
-        # Create DIM_LOCATION from unique combinations of location attributes.
-        dim_location = temp_location.drop_duplicates(
-            subset=['neighborhood', 'city', 'latitude', 'longitude']
-        ).reset_index(drop=True)
-        # Normalize the neighbourhoods CSV mapping: lower-case columns and neighborhood names.
+        # Merge with the CSV mapping (neighbourhoods.csv) to assign a borough.
+        # Normalize CSV mapping: convert column names to lowercase and normalize neighborhood values.
         neighbourhoods_df.columns = [col.strip().lower() for col in neighbourhoods_df.columns]
         neighbourhoods_df['neighborhood'] = neighbourhoods_df['neighbourhood'].str.strip().str.lower()
-        # Merge to assign borough information based on the neighborhood.
-        dim_location = dim_location.merge(
+        temp_location = temp_location.merge(
             neighbourhoods_df[['neighbourhood_group', 'neighborhood']],
             on='neighborhood',
             how='left'
         )
-        # Set the 'borough' column.
-        dim_location['borough'] = dim_location['neighbourhood_group']
-        # Drop the extra column from the mapping.
-        dim_location.drop(columns=['neighbourhood_group'], inplace=True)
-        # Create a surrogate key for DIM_LOCATION.
-        dim_location = dim_location.reset_index(drop=True)
-        dim_location['location_id'] = dim_location.index + 1
-        # Reorder columns to place the surrogate key first.
-        dim_location = dim_location[['location_id', 'neighborhood', 'city', 'latitude', 'longitude', 'borough']]
+        temp_location['borough'] = temp_location['neighbourhood_group']
+        temp_location.drop(columns=['neighbourhood_group'], inplace=True)
+        # Build DIM_LOCATION: Unique combinations of (neighborhood, city, latitude, longitude).
+        # The natural key will be (latitude, longitude).
+        dim_location = temp_location.drop_duplicates(subset=['latitude', 'longitude']).reset_index(drop=True)
+        # Retain relevant location attributes.
+        dim_location = dim_location[['neighborhood', 'city', 'latitude', 'longitude', 'borough']]
 
-        # Build a mapping from the original listing id to the new location_id.
-        listing_location_mapping = temp_location.merge(
-            dim_location,
-            on=['neighborhood', 'city', 'latitude', 'longitude'],
-            how='left'
-        )[["listing_id", "location_id"]].drop_duplicates(subset=["listing_id"])
+        # Build a mapping from the original listing_id to its location attributes (latitude and longitude).
+        # Drop duplicates on listing_id to ensure uniqueness.
+        listing_location_mapping = temp_location[['listing_id', 'latitude', 'longitude']].drop_duplicates(
+            subset=['listing_id']).copy()
+        # To avoid column name collisions during merge, rename the key column.
+        listing_location_mapping.rename(columns={'listing_id': 'orig_listing_id_map'}, inplace=True)
 
         # ----- Step 5: Build DIM_DATE -----
-        # Derive date components (day, month, year, quarter, week) from the calendar data.
+        # Extract date components.
         calendar_df['day'] = calendar_df['date'].dt.day
         calendar_df['month'] = calendar_df['date'].dt.month
         calendar_df['year'] = calendar_df['date'].dt.year
         calendar_df['quarter'] = calendar_df['date'].dt.quarter
         calendar_df['week'] = calendar_df['date'].dt.isocalendar().week
 
-        # Function to determine the season based on the month.
         def get_season(month):
             if month in [12, 1, 2]:
                 return 'Winter'
@@ -140,27 +116,21 @@ class DataTransformer:
             else:
                 return 'Fall'
 
-        # Apply the season function to the month column.
         calendar_df['season'] = calendar_df['month'].apply(get_season)
-        # Build the date dimension table with unique dates.
+        # Build DIM_DATE from unique dates.
         dim_date = calendar_df[['date', 'day', 'month', 'quarter', 'year', 'week', 'season']].drop_duplicates().copy()
-        # Rename 'date' to 'full_date' for clarity.
         dim_date.rename(columns={'date': 'full_date'}, inplace=True)
-        # Sort the dates and reset index.
         dim_date = dim_date.sort_values('full_date').reset_index(drop=True)
-        # Create a surrogate key for DIM_DATE.
         dim_date['date_id'] = dim_date.index + 1
-        # Reorder columns so that the surrogate key appears first.
         dim_date = dim_date[['date_id', 'full_date', 'day', 'month', 'quarter', 'year', 'week', 'season']]
 
-        # ----- Step 6: Build FACT_DAILY_REVENUE with location_id and date_id -----
+        # ----- Step 6: Build FACT_DAILY_REVENUE with Latitude and Longitude -----
         # Start with the calendar data as the base for the fact table.
         fact_daily_revenue = calendar_df[['listing_id', 'date', 'price', 'occupied_flag']].copy()
-        # Preserve the original listing_id for joining with the location mapping.
-        fact_daily_revenue['orig_listing_id'] = fact_daily_revenue['listing_id']
-        # Rename 'price' to 'daily_price' to differentiate from default price.
         fact_daily_revenue.rename(columns={'price': 'daily_price'}, inplace=True)
-        # Merge in the default listing price from the listings data.
+        # Preserve the original listing_id for later use.
+        fact_daily_revenue['orig_listing_id'] = fact_daily_revenue['listing_id']
+        # Merge in the default price from listings_df.
         fact_daily_revenue = fact_daily_revenue.merge(
             listings_df[['listing_id', 'price']],
             on='listing_id',
@@ -168,38 +138,42 @@ class DataTransformer:
             suffixes=('', '_default')
         )
         fact_daily_revenue.rename(columns={'price_default': 'default_price'}, inplace=True)
-        # Convert the original listing id in the fact table to the surrogate key from DIM_LISTING.
+        # Convert the fact table's listing_id to the surrogate key from DIM_LISTING.
         fact_daily_revenue = fact_daily_revenue.merge(
             dim_listing[['listing_id_surrogate', 'ListingID_BK']],
             left_on='listing_id',
             right_on='ListingID_BK',
             how='left'
         )
-        # Drop the original listing_id columns after merging.
+        # Drop the original listing_id columns.
         fact_daily_revenue.drop(columns=['listing_id', 'ListingID_BK'], inplace=True)
-        # Rename the surrogate key column to 'listing_id' to serve as a foreign key.
+        # Rename the surrogate key column to 'listing_id'.
         fact_daily_revenue.rename(columns={'listing_id_surrogate': 'listing_id'}, inplace=True)
-
-        # Merge in the location_id using the preserved original listing id.
+        # Merge in latitude and longitude from the mapping.
+        # Use the preserved original listing id ('orig_listing_id') to match with the mapping.
         fact_daily_revenue = fact_daily_revenue.merge(
             listing_location_mapping,
             left_on='orig_listing_id',
-            right_on='listing_id',
-            how='left'
+            right_on='orig_listing_id_map',
+            how='left',
+            suffixes=('', '_loc')
         )
-        # Clean up extra columns from the join.
-        fact_daily_revenue.drop(columns=['listing_id_y'], inplace=True)
-        fact_daily_revenue.rename(columns={'listing_id_x': 'listing_id'}, inplace=True)
-        fact_daily_revenue.drop(columns=['orig_listing_id'], inplace=True)
-
-        # Merge with DIM_DATE to incorporate the date_id.
+        # Drop the extra mapping key and the preserved column.
+        fact_daily_revenue.drop(columns=['orig_listing_id', 'orig_listing_id_map'], inplace=True)
+        # Merge with DIM_DATE to get the surrogate date key.
         fact_daily_revenue = fact_daily_revenue.merge(
             dim_date[['date_id', 'full_date']],
             left_on='date',
             right_on='full_date',
             how='left'
         )
-        # Drop the raw date columns; now the fact table references DIM_DATE via date_id.
+        # Drop raw date columns; FACT_DAILY_REVENUE now references DIM_DATE via date_id.
         fact_daily_revenue.drop(columns=['date', 'full_date'], inplace=True)
+
+        # Now, FACT_DAILY_REVENUE contains:
+        # - listing_id (the surrogate key from DIM_LISTING),
+        # - daily_price, default_price, occupied_flag,
+        # - latitude and longitude (from the mapping),
+        # - date_id (from DIM_DATE).
 
         return dim_listing, dim_location, dim_date, fact_daily_revenue

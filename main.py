@@ -2,6 +2,7 @@ from db_connection import DBConnection
 from data_extractor import DataExtractor
 from data_transformer import DataTransformer
 from data_loader import DataLoader
+from data_sanity_checker import DataSanityChecker  # Import the test class
 
 
 def main():
@@ -17,7 +18,6 @@ def main():
     db.create_database_if_not_exists()
     engine = db.connect()
 
-    # Define file paths for all source files.
     paths = {
         'calendar': 'resources/calendar.csv',
         'listings': 'resources/listings.csv',
@@ -26,7 +26,7 @@ def main():
         'geojson': 'resources/neighbourhoods.geojson'
     }
 
-    # Extraction: Read all source files.
+    # Extraction: Read source files.
     extractor = DataExtractor(paths)
     calendar_df, listings_df, listings_details_df, neighbourhoods_df, geojson_gdf = extractor.extract()
 
@@ -36,12 +36,15 @@ def main():
         calendar_df, listings_df, listings_details_df, neighbourhoods_df, geojson_gdf
     )
 
-    # Loading: Write transformed tables into the PostgreSQL database.
+    # Run sanity checks on the transformed data.
+    checker = DataSanityChecker(listings_df, calendar_df, dim_listing, dim_location, fact_daily_revenue)
+    checker.run_all_checks()
+
+    # Loading: Write the transformed tables into the PostgreSQL database.
     loader = DataLoader(engine)
     loader.load_dimension(dim_listing, "dim_listing", chunk_size=50000)
     loader.load_dimension(dim_location, "dim_location", chunk_size=50000)
     loader.load_dimension(dim_date, "dim_date", chunk_size=50000)
-    # Option: Load fact table using the COPY command for performance.
     loader.load_fact_using_copy(fact_daily_revenue, "fact_daily_revenue")
 
     print("[ETL] Process completed successfully!")
